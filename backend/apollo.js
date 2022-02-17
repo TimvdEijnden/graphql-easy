@@ -25,10 +25,10 @@ const typeDefs = gql`
     price: Float
   }
   type Mutation {
-    addCategory(name: String!): Category
+    addCategory(categoryName: String!): Category
     addCategoryWithProduct(
       categoryName: String!
-      product: ProductInput
+      product: ProductInput!
     ): Category
   }
   input ProductInput {
@@ -38,14 +38,18 @@ const typeDefs = gql`
   }
 `;
 
+
 // Resolve the products based on their id
 const resolveCategories = (categories) =>
-  categories.map((category) => ({
+  categories.map(resolveCategory);
+
+// Resolve the products based on their id
+const resolveCategory = (category) =>({
     ...category,
     products: category.products?.map((product) =>
       products.find((p) => p.id === product)
     ),
-  }));
+  })
 
 // Reuse creation of category
 const createCategory = (name) => {
@@ -59,7 +63,7 @@ const resolvers = {
   Query: {
     categories: () => resolveCategories(categories),
     products: () => products,
-    category: (_, { id }) => categories.find((p) => p.id === id),
+    category: (_, { id }) => resolveCategory(categories.find((p) => p.id === id)),
     product: (_, { id }) => products.find((p) => p.id === id),
   },
   // A map of function which are called to update the 'database'
